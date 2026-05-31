@@ -1,0 +1,16 @@
+{
+  "@@locale": "de",
+  "appTitle": "PicTapCount",
+  "noSessions": "Noch keine Zählsitzungen.\nFoto aufnehmen oder importieren, um zu starten.",
+  "openCamera": "Kamera",
+  "importGallery": "Galerie",
+  "undo": "Rückgängig",
+  "reset": "Zurücksetzen",
+  "resetConfirmTitle": "Zählung zurücksetzen?",
+  "resetConfirmBody": "Alle Punkte werden gelöscht. Dies kann nicht rückgängig gemacht werden.",
+  "cancel": "Abbrechen",
+  "resetConfirm": "Zurücksetzen",
+  "deleteConfirmTitle": "Sitzung löschen?",
+  "deleteConfirmBody": "Das Foto und alle Zähldaten werden dauerhaft gelöscht.",
+  "delete": "Löschen"
+}

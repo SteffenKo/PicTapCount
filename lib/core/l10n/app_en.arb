@@ -1,0 +1,16 @@
+{
+  "@@locale": "en",
+  "appTitle": "PicTapCount",
+  "noSessions": "No counting sessions yet.\nTake or import a photo to start.",
+  "openCamera": "Camera",
+  "importGallery": "Gallery",
+  "undo": "Undo",
+  "reset": "Reset",
+  "resetConfirmTitle": "Reset counting?",
+  "resetConfirmBody": "All points will be removed. This cannot be undone.",
+  "cancel": "Cancel",
+  "resetConfirm": "Reset",
+  "deleteConfirmTitle": "Delete session?",
+  "deleteConfirmBody": "The photo and all count data will be permanently deleted.",
+  "delete": "Delete"
+}
