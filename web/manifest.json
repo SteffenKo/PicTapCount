@@ -1,11 +1,11 @@
 {
-    "name": "pictapcount",
-    "short_name": "pictapcount",
+    "name": "PicTapCount",
+    "short_name": "PicTapCount",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFA500",
+    "theme_color": "#FFA500",
+    "description": "Fast offline app for counting objects in photos.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
