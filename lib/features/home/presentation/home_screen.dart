@@ -1,13 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../../core/platform/image_storage.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../photos/domain/models/count_layer.dart';
@@ -90,17 +88,14 @@ class HomeScreen extends ConsumerWidget {
     final picked = await picker.pickImage(source: source, imageQuality: 100);
     if (picked == null || !context.mounted) return;
 
-    final appDir = await getApplicationDocumentsDirectory();
-    final fileName = '${const Uuid().v4()}.jpg';
-    final destPath = p.join(appDir.path, 'pictapcount', fileName);
-    await Directory(p.dirname(destPath)).create(recursive: true);
-    await File(picked.path).copy(destPath);
+    final photoId = const Uuid().v4();
+    final imagePath = await saveImage(picked, photoId);
 
     final now = DateTime.now();
     final photo = Photo(
-      id: const Uuid().v4(),
+      id: photoId,
       title: DateFormat('yyyy-MM-dd HH:mm').format(now),
-      imagePath: destPath,
+      imagePath: imagePath,
       createdAt: now,
       countLayers: [
         CountLayer(

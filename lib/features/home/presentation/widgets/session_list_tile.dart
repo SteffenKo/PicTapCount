@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../../../../core/platform/image_storage.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../photos/domain/models/photo.dart';
@@ -26,8 +26,8 @@ class SessionListTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.file(
-          File(photo.imagePath),
+        child: Image(
+          image: imageProvider(photo),
           width: 60,
           height: 60,
           fit: BoxFit.cover,

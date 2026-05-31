@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/platform/image_storage.dart';
 
 import '../../photos/domain/models/count_layer.dart';
 import '../../photos/domain/models/photo.dart';
@@ -18,7 +19,7 @@ class CountingNotifier extends FamilyAsyncNotifier<CountingState, String> {
     final repo = ref.read(photoRepositoryProvider);
     final photo = await repo.getById(arg);
     if (photo == null) throw Exception('Photo not found: $arg');
-    final imageSize = await _resolveImageSize(photo.imagePath);
+    final imageSize = await _resolveImageSize(photo);
     return CountingState(photo: photo, imageSize: imageSize);
   }
 
@@ -74,10 +75,10 @@ class CountingNotifier extends FamilyAsyncNotifier<CountingState, String> {
     }).catchError((_) {});
   }
 
-  Future<ui.Size> _resolveImageSize(String imagePath) async {
+  Future<ui.Size> _resolveImageSize(Photo photo) async {
     final completer = Completer<ui.Size>();
-    final imageProvider = FileImage(File(imagePath));
-    final stream = imageProvider.resolve(ImageConfiguration.empty);
+    final provider = imageProvider(photo);
+    final stream = provider.resolve(ImageConfiguration.empty);
     late ImageStreamListener listener;
     listener = ImageStreamListener(
       (info, _) {

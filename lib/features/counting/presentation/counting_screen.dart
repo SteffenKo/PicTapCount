@@ -1,8 +1,9 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/platform/image_storage.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../application/counting_notifier.dart';
@@ -86,8 +87,8 @@ class _CountingScreenState extends ConsumerState<CountingScreen> {
                             imageSize: imageSize,
                           )
                         : null,
-                    child: Image.file(
-                      File(photo.imagePath),
+                    child: Image(
+                      image: imageProvider(photo),
                       fit: BoxFit.contain,
                       width: constraints.maxWidth,
                       height: constraints.maxHeight,

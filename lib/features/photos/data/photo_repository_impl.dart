@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import '../../../core/platform/image_storage.dart';
 import '../domain/models/photo.dart';
 import '../domain/photo_repository.dart';
 
@@ -29,12 +30,7 @@ class PhotoRepositoryImpl implements PhotoRepository {
   Future<void> delete(String id) async {
     final photo = _box.get(id);
     if (photo != null) {
-      try {
-        final file = File(photo.imagePath);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } catch (_) {}
+      await deleteImage(photo.imagePath);
     }
     await _box.delete(id);
   }

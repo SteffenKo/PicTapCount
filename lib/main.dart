@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -13,5 +14,8 @@ void main() async {
   Hive.registerAdapter(CountLayerAdapter());
   Hive.registerAdapter(PhotoAdapter());
   await Hive.openBox<Photo>('photos');
+  if (kIsWeb) {
+    await Hive.openBox<dynamic>('imageBytes');
+  }
   runApp(const ProviderScope(child: App()));
 }
