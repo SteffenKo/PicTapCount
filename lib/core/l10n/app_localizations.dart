@@ -175,6 +175,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get delete;
+
+  /// No description provided for @rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
+
+  /// No description provided for @renameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename session'**
+  String get renameTitle;
+
+  /// No description provided for @photoName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get photoName;
 }
 
 class _AppLocalizationsDelegate

@@ -12,5 +12,8 @@
   "resetConfirm": "Reset",
   "deleteConfirmTitle": "Delete session?",
   "deleteConfirmBody": "The photo and all count data will be permanently deleted.",
-  "delete": "Delete"
+  "delete": "Delete",
+  "rename": "Rename",
+  "renameTitle": "Rename session",
+  "photoName": "Name"
 }

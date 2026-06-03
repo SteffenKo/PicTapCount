@@ -21,60 +21,83 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final photosAsync = ref.watch(photoListProvider);
     final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          l10n.appTitle,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-        ),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _startSession(context, ref, ImageSource.camera),
-                    icon: const Icon(Icons.camera_alt),
-                    label: Text(l10n.openCamera),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _startSession(context, ref, ImageSource.gallery),
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: Text(l10n.importGallery),
-                  ),
-                ),
-              ],
-            ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: Text(l10n.appTitle),
           ),
-          const Divider(height: 1),
-          Expanded(
-            child: photosAsync.when(
-              data: (photos) => photos.isEmpty
-                  ? const _EmptyState()
-                  : ListView.separated(
-                      itemCount: photos.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, i) {
-                        final photo = photos[i];
-                        return SessionListTile(
-                          photo: photo,
-                          onTap: () => context.push('/count/${photo.id}'),
-                          onDelete: () => _confirmDelete(context, ref, photo),
-                        );
-                      },
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _startSession(context, ref, ImageSource.camera),
+                      icon: const Icon(Icons.camera_alt),
+                      label: Text(l10n.openCamera),
                     ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _startSession(context, ref, ImageSource.gallery),
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: Text(l10n.importGallery),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+          const SliverToBoxAdapter(child: Divider(height: 1)),
+          _buildPhotoSliver(context, ref, l10n, cs, photosAsync),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoSliver(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    ColorScheme cs,
+    AsyncValue<List<Photo>> photosAsync,
+  ) {
+    return photosAsync.when(
+      data: (photos) => photos.isEmpty
+          ? const SliverFillRemaining(hasScrollBody: false, child: _EmptyState())
+          : SliverList.separated(
+              itemCount: photos.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, i) {
+                final photo = photos[i];
+                return Dismissible(
+                  key: Key(photo.id),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) => _confirmDelete(context, ref, photo),
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 24),
+                    color: cs.errorContainer,
+                    child: Icon(Icons.delete_outline, color: cs.onErrorContainer),
+                  ),
+                  child: SessionListTile(
+                    photo: photo,
+                    onTap: () => context.push('/count/${photo.id}'),
+                    onRename: () => _confirmRename(context, ref, photo),
+                  ),
+                );
+              },
+            ),
+      loading: () => const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => SliverFillRemaining(
+        child: Center(child: Text('Error: $e')),
       ),
     );
   }
@@ -101,7 +124,7 @@ class HomeScreen extends ConsumerWidget {
         CountLayer(
           id: const Uuid().v4(),
           name: 'Default',
-          color: 0xFFFFA500,
+          color: 0xFFEB7E1C,
           points: const [],
         ),
       ],
@@ -115,12 +138,30 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmDelete(
+  Future<void> _confirmRename(
+    BuildContext context,
+    WidgetRef ref,
+    Photo photo,
+  ) async {
+    final newTitle = await showDialog<String>(
+      context: context,
+      builder: (ctx) => _RenameDialog(initialTitle: photo.title),
+    );
+    if (!context.mounted) return;
+    final trimmed = newTitle?.trim();
+    if (trimmed != null && trimmed.isNotEmpty) {
+      await ref.read(photoRepositoryProvider).save(photo.copyWith(title: trimmed));
+      ref.invalidate(photoListProvider);
+    }
+  }
+
+  Future<bool?> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
     Photo photo,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -133,7 +174,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: cs.error),
             child: Text(l10n.delete),
           ),
         ],
@@ -143,6 +184,7 @@ class HomeScreen extends ConsumerWidget {
       await ref.read(photoRepositoryProvider).delete(photo.id);
       ref.invalidate(photoListProvider);
     }
+    return confirmed;
   }
 }
 
@@ -152,19 +194,72 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.touch_app_outlined, size: 64, color: Colors.grey.shade300),
+          Icon(Icons.touch_app_outlined, size: 64, color: cs.outlineVariant),
           const SizedBox(height: 16),
           Text(
             l10n.noSessions,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RenameDialog extends StatefulWidget {
+  final String initialTitle;
+
+  const _RenameDialog({required this.initialTitle});
+
+  @override
+  State<_RenameDialog> createState() => _RenameDialogState();
+}
+
+class _RenameDialogState extends State<_RenameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialTitle);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.renameTitle),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: InputDecoration(labelText: l10n.photoName),
+        onSubmitted: (v) => Navigator.pop(context, v),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: Text(l10n.rename),
+        ),
+      ],
     );
   }
 }

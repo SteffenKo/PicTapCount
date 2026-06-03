@@ -23,11 +23,40 @@ class CountingScreen extends ConsumerStatefulWidget {
 class _CountingScreenState extends ConsumerState<CountingScreen> {
   final _transformController = TransformationController();
   Size? _widgetSize;
+  double _dotSize = 5.0;
+
+  bool _editingTitle = false;
+  TextEditingController? _titleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _transformController.addListener(_onTransformChanged);
+  }
+
+  void _onTransformChanged() => setState(() {});
 
   @override
   void dispose() {
+    _transformController.removeListener(_onTransformChanged);
     _transformController.dispose();
+    _titleController?.dispose();
     super.dispose();
+  }
+
+  void _startEditingTitle(String currentTitle) {
+    _titleController = TextEditingController(text: currentTitle);
+    setState(() => _editingTitle = true);
+  }
+
+  void _submitTitle(String title) {
+    final trimmed = title.trim();
+    if (trimmed.isNotEmpty) {
+      ref.read(countingNotifierProvider(widget.photoId).notifier).rename(trimmed);
+    }
+    _titleController?.dispose();
+    _titleController = null;
+    setState(() => _editingTitle = false);
   }
 
   void _handleTap(Offset localPosition, CountingState countingState) {
@@ -44,13 +73,45 @@ class _CountingScreenState extends ConsumerState<CountingScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncState = ref.watch(countingNotifierProvider(widget.photoId));
+    final currentTitle = asyncState.valueOrNull?.photo.title ?? '';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          asyncState.valueOrNull?.photo.title ?? '',
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: _editingTitle
+            ? TextField(
+                controller: _titleController,
+                autofocus: true,
+                style: const TextStyle(fontSize: 18),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                ),
+                onSubmitted: _submitTitle,
+              )
+            : GestureDetector(
+                onTap: () => _startEditingTitle(currentTitle),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        currentTitle,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.edit_outlined, size: 14),
+                  ],
+                ),
+              ),
+        actions: _editingTitle
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.check),
+                  onPressed: () => _submitTitle(_titleController!.text),
+                ),
+              ]
+            : null,
       ),
       body: asyncState.when(
         data: _buildBody,
@@ -80,25 +141,33 @@ class _CountingScreenState extends ConsumerState<CountingScreen> {
                 child: SizedBox(
                   width: constraints.maxWidth,
                   height: constraints.maxHeight,
-                  child: CustomPaint(
-                    foregroundPainter: imageSize != null
-                        ? CountCanvasPainter(
-                            points: points,
-                            imageSize: imageSize,
-                          )
-                        : null,
-                    child: Image(
-                      image: imageProvider(photo),
-                      fit: BoxFit.contain,
-                      width: constraints.maxWidth,
-                      height: constraints.maxHeight,
-                    ),
+                  child: Image(
+                    image: imageProvider(photo),
+                    fit: BoxFit.contain,
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight,
                   ),
                 ),
               ),
             );
           },
         ),
+        // Dots overlay outside InteractiveViewer so they don't scale with zoom.
+        // The transform is applied manually so dots track their image positions.
+        if (imageSize != null)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: CountCanvasPainter(
+                  points: points,
+                  imageSize: imageSize,
+                  dotRadius: _dotSize,
+                  transform: _transformController.value,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
         Positioned(
           top: 16,
           right: 16,
@@ -111,6 +180,8 @@ class _CountingScreenState extends ConsumerState<CountingScreen> {
           child: CountControls(
             canUndo: points.isNotEmpty,
             canReset: points.isNotEmpty,
+            dotSize: _dotSize,
+            onDotSizeChanged: (v) => setState(() => _dotSize = v),
             onUndo: () =>
                 ref.read(countingNotifierProvider(widget.photoId).notifier).undo(),
             onReset: () => _confirmReset(context),
@@ -134,7 +205,9 @@ class _CountingScreenState extends ConsumerState<CountingScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
+            ),
             child: Text(l10n.resetConfirm),
           ),
         ],
@@ -180,26 +253,19 @@ class _CountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFA500),
+        color: cs.tertiaryContainer,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Text(
         '$count',
-        style: const TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
-        ),
+        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: cs.onTertiaryContainer,
+            ),
       ),
     );
   }

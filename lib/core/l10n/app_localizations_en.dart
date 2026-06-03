@@ -49,4 +49,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get renameTitle => 'Rename session';
+
+  @override
+  String get photoName => 'Name';
 }

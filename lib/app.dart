@@ -13,6 +13,8 @@ class App extends StatelessWidget {
     return MaterialApp.router(
       title: 'PicTapCount',
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       routerConfig: appRouter,
       localizationsDelegates: const [
         AppLocalizations.delegate,

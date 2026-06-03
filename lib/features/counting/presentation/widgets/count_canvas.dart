@@ -7,26 +7,31 @@ import '../../../photos/domain/models/point.dart';
 class CountCanvasPainter extends CustomPainter {
   final List<Point> points;
   final ui.Size imageSize;
+  final double dotRadius;
+  final Matrix4 transform;
+  final Color color;
 
-  CountCanvasPainter({required this.points, required this.imageSize});
+  CountCanvasPainter({
+    required this.points,
+    required this.imageSize,
+    required this.dotRadius,
+    required this.transform,
+    required this.color,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final displayRect = _displayRect(size);
 
-    final fillPaint = Paint()
-      ..color = const Color(0xFFFFA500).withValues(alpha: 0.55)
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.6)
+    final ringPaint = Paint()
+      ..color = color.withValues(alpha: 0.95)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 2.5;
 
     for (final point in points) {
-      final pos = _pixelToDisplay(point, displayRect);
-      canvas.drawCircle(pos, 5.5, fillPaint);
-      canvas.drawCircle(pos, 5.5, borderPaint);
+      final unzoomedPos = _pixelToDisplay(point, displayRect);
+      final screenPos = MatrixUtils.transformPoint(transform, unzoomedPos);
+      canvas.drawCircle(screenPos, dotRadius, ringPaint);
     }
   }
 
@@ -59,6 +64,5 @@ class CountCanvasPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CountCanvasPainter old) =>
-      old.points != points || old.imageSize != imageSize;
+  bool shouldRepaint(CountCanvasPainter old) => true;
 }

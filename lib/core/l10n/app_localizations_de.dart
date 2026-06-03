@@ -49,4 +49,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get delete => 'Löschen';
+
+  @override
+  String get rename => 'Umbenennen';
+
+  @override
+  String get renameTitle => 'Sitzung umbenennen';
+
+  @override
+  String get photoName => 'Name';
 }

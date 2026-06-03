@@ -69,6 +69,14 @@ class CountingNotifier extends FamilyAsyncNotifier<CountingState, String> {
     return current.copyWith(photo: current.photo.copyWith(countLayers: newLayers));
   }
 
+  void rename(String title) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final updated = current.copyWith(photo: current.photo.copyWith(title: title));
+    state = AsyncData(updated);
+    _autoSave(updated.photo);
+  }
+
   void _autoSave(Photo photo) {
     ref.read(photoRepositoryProvider).save(photo).then((_) {
       ref.invalidate(photoListProvider);

@@ -12,5 +12,8 @@
   "resetConfirm": "Zurücksetzen",
   "deleteConfirmTitle": "Sitzung löschen?",
   "deleteConfirmBody": "Das Foto und alle Zähldaten werden dauerhaft gelöscht.",
-  "delete": "Löschen"
+  "delete": "Löschen",
+  "rename": "Umbenennen",
+  "renameTitle": "Sitzung umbenennen",
+  "photoName": "Name"
 }
